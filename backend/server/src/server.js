@@ -10,6 +10,10 @@ connectDB();
 app.use(cors());
 app.use(express.json());
 
+// ✅ Rotas
+const viagensRoutes = require("./routes/viagens");
+app.use("/viagens", viagensRoutes);
+
 // ✅ Rota padrão
 app.get("/", (req, res) => {
   res.send("API funcionando!");
