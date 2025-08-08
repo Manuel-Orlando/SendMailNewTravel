@@ -66,4 +66,23 @@ router.put("/:id", async (req, res) => {
   }
 });
 
+// DELETE /viagens/:id - remover viagem
+router.delete("/:id", async (req, res) => {
+  try {
+    const viagemRemovida = await Viagem.findByIdAndDelete(req.params.id);
+
+    if (!viagemRemovida) {
+      return res
+        .status(404)
+        .json({ erro: "Viagem não encontrada para exclusão" });
+    }
+
+    res.status(200).json({ mensagem: "Viagem removida com sucesso" });
+  } catch (error) {
+    res
+      .status(400)
+      .json({ erro: "Erro ao remover viagem", detalhes: error.message });
+  }
+});
+
 module.exports = router;
