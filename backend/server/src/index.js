@@ -1,17 +1,18 @@
-import express from "express";
-import dotenv from "dotenv";
-
-dotenv.config();
+require("dotenv").config();
+const express = require("express");
+const connectDB = require("./db");
+const cors = require("cors");
 
 const app = express();
-const PORT = process.env.PORT || 4000;
+connectDB();
 
+app.use(cors());
 app.use(express.json());
 
 app.get("/", (req, res) => {
-  res.send("API funcionando 🚀");
+  res.send("API funcionando!");
 });
 
-app.listen(PORT, () => {
-  console.log(`Servidor rodando na porta ${PORT}`);
+app.listen(process.env.PORT || 4000, () => {
+  console.log(`🚀 Servidor rodando na porta ${process.env.PORT || 4000}`);
 });
