@@ -1,13 +1,9 @@
-import { useState } from "react";
+import ViagensPage from "./features/viagens/ViagensPage";
 
-function App() {
-  const [count, setCount] = useState(0);
-
+export default function App() {
   return (
-    <>
-      <h1 className="text-5xl">Vite + React</h1>
-    </>
+    <div className="min-h-screen bg-gray-50">
+      <ViagensPage />
+    </div>
   );
 }
-
-export default App;
