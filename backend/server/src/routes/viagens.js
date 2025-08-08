@@ -43,4 +43,27 @@ router.get("/:id", async (req, res) => {
   }
 });
 
+// PUT /viagens/:id - atualizar viagem existente
+router.put("/:id", async (req, res) => {
+  try {
+    const viagemAtualizada = await Viagem.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true, runValidators: true }
+    );
+
+    if (!viagemAtualizada) {
+      return res
+        .status(404)
+        .json({ erro: "Viagem não encontrada para atualização" });
+    }
+
+    res.status(200).json(viagemAtualizada);
+  } catch (error) {
+    res
+      .status(400)
+      .json({ erro: "Erro ao atualizar viagem", detalhes: error.message });
+  }
+});
+
 module.exports = router;
