@@ -28,4 +28,19 @@ router.get("/", async (req, res) => {
   }
 });
 
+// GET /viagens/:id - buscar viagem por ID
+router.get("/:id", async (req, res) => {
+  try {
+    const viagem = await Viagem.findById(req.params.id);
+    if (!viagem) {
+      return res.status(404).json({ erro: "Viagem não encontrada" });
+    }
+    res.status(200).json(viagem);
+  } catch (error) {
+    res
+      .status(400)
+      .json({ erro: "ID inválido ou erro na busca", detalhes: error.message });
+  }
+});
+
 module.exports = router;
