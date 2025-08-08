@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const MONGO_URL =
+const MONGO_URI =
   process.env.MONGO_URI || "mongodb://localhost:27017/bancodedados";
 
 const connectDB = async () => {
@@ -13,6 +13,6 @@ const connectDB = async () => {
     console.error("❌ Erro ao conectar ao MongoDB:", err);
   }
 };
-
+console.log("🔗 URI usada:", process.env.MONGO_URI);
 module.exports = connectDB;
 // backend/server/src/index.js
