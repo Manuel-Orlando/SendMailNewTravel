@@ -16,4 +16,16 @@ router.post("/", async (req, res) => {
   }
 });
 
+// GET /viagens - listar todas as viagens
+router.get("/", async (req, res) => {
+  try {
+    const viagens = await Viagem.find();
+    res.status(200).json(viagens);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ erro: "Erro ao buscar viagens", detalhes: error.message });
+  }
+});
+
 module.exports = router;
