@@ -3,6 +3,9 @@ const express = require("express");
 const connectDB = require("./config/database");
 const cors = require("cors");
 
+// Apenas importa para iniciar o agendador
+require("./cron/limpezaReservas");
+
 const app = express();
 connectDB();
 
