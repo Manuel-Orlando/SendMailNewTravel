@@ -1,24 +1,15 @@
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import { jwtDecode } from "jwt-decode";
 import { motion } from "framer-motion";
 import { useState } from "react";
 import RegisterModal from "./auth/RegisterModal";
+import LoginModal from "./auth/LoginModal";
 
 export default function Header() {
-  const { token, logout } = useAuth();
+  const { token, logout, userName } = useAuth();
   const navigate = useNavigate();
   const [showRegisterModal, setShowRegisterModal] = useState(false);
-
-  let nomeUsuario = "";
-  if (token) {
-    try {
-      const decoded = jwtDecode(token);
-      nomeUsuario = decoded.nome || decoded.email || "Usuário";
-    } catch (err) {
-      console.error("Token inválido");
-    }
-  }
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -35,25 +26,44 @@ export default function Header() {
       >
         <h1 className="text-xl font-bold">✈️ Agência de Viagens</h1>
         <nav className="flex items-center gap-6">
-          <Link to="/" className="hover:underline">
+          <button className="hover:underline" onClick={() => navigate("/")}>
             Home
-          </Link>
-          <Link to="/viagens" className="hover:underline">
-            Viagens
-          </Link>
-          <Link to="/reservas" className="hover:underline">
-            Minhas Reservas
-          </Link>
+          </button>
           <button
-            onClick={() => setShowRegisterModal(true)}
-            className="bg-white text-blue-600 px-3 py-1 rounded hover:bg-blue-100 transition"
+            className="hover:underline"
+            onClick={() => navigate("/viagens")}
           >
-            Cadastrar
+            Viagens
+          </button>
+          <button
+            className="hover:underline"
+            onClick={() => navigate("/reservas")}
+          >
+            Minhas Reservas
           </button>
 
-          {token ? (
+          {!token && (
             <>
-              <span className="font-semibold">Olá, {nomeUsuario}</span>
+              <button
+                onClick={() => setShowRegisterModal(true)}
+                className="bg-white text-blue-600 px-3 py-1 rounded hover:bg-blue-100 transition"
+              >
+                Cadastrar
+              </button>
+              <button
+                onClick={() => setShowLoginModal(true)}
+                className="bg-white text-blue-600 px-3 py-1 rounded hover:bg-blue-100 transition"
+              >
+                Login
+              </button>
+            </>
+          )}
+
+          {token && (
+            <>
+              <span className="font-semibold">
+                Olá, {userName || "Usuário"}
+              </span>
               <button
                 onClick={handleLogout}
                 className="bg-white text-blue-600 px-3 py-1 rounded hover:bg-blue-100 transition"
@@ -61,19 +71,16 @@ export default function Header() {
                 Sair
               </button>
             </>
-          ) : (
-            <Link
-              to="/login"
-              className="bg-white text-blue-600 px-3 py-1 rounded hover:bg-blue-100 transition"
-            >
-              Login
-            </Link>
           )}
         </nav>
       </motion.header>
 
       {showRegisterModal && (
         <RegisterModal onClose={() => setShowRegisterModal(false)} />
+      )}
+
+      {showLoginModal && (
+        <LoginModal onClose={() => setShowLoginModal(false)} />
       )}
     </>
   );

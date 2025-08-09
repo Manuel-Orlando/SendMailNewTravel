@@ -3,14 +3,17 @@ import { useAuth } from "../../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 
 export default function RegisterModal({ onClose }) {
+  console.log("API URL fora do submit:", import.meta.env.VITE_API_URL);
   const [formData, setFormData] = useState({
     nome: "",
     email: "",
     senha: "",
+    confirmarSenha: "",
   });
 
   const [error, setError] = useState("");
-  const { login } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
+  const { login, setUserName } = useAuth();
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -20,36 +23,54 @@ export default function RegisterModal({ onClose }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log("submit interceptado");
+    const { nome, email, senha, confirmarSenha } = formData;
 
-    const { nome, email, senha } = formData;
-
-    if (!nome || !email || !senha) {
+    if (!nome || !email || !senha || !confirmarSenha) {
       setError("Preencha todos os campos.");
       return;
     }
 
+    if (senha !== confirmarSenha) {
+      setError("As senhas não coincidem.");
+      return;
+    }
+
+    setIsLoading(true);
+
     try {
-      const response = await fetch("https://sua-api.com/register", {
+      const apiUrl = import.meta.env.VITE_API_URL;
+      console.log("API URL dentro do submit:", apiUrl);
+
+      const response = await fetch(`${apiUrl}/auth/registro`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ nome, email, senha }),
       });
 
+      console.log("Enviando para:", `${apiUrl}/auth/registro`);
+      console.log("Dados enviados:", { nome, email, senha });
+      console.log("Resposta recebida:", response);
+
       if (!response.ok) {
-        throw new Error("Erro ao cadastrar.");
+        const erro = await response.text();
+        throw new Error("Erro ao cadastrar: " + erro);
       }
 
       const data = await response.json();
+      setUserName(data.usuario.nome);
 
       if (!data.token) {
         throw new Error("Token não recebido.");
       }
 
-      login(data.token);
+      login(data.token, data.usuario.nome);
       onClose();
       navigate("/");
     } catch (err) {
-      setError("Não foi possível cadastrar. Tente novamente.");
+      setError(err.message || "Não foi possível cadastrar. Tente novamente.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -58,6 +79,7 @@ export default function RegisterModal({ onClose }) {
       <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md relative">
         <button
           onClick={onClose}
+          aria-label="Fechar modal"
           className="absolute top-2 right-2 text-gray-500 hover:text-gray-800"
         >
           ✖
@@ -70,6 +92,7 @@ export default function RegisterModal({ onClose }) {
             placeholder="Nome"
             value={formData.nome}
             onChange={handleChange}
+            aria-label="Nome"
             className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <input
@@ -78,6 +101,7 @@ export default function RegisterModal({ onClose }) {
             placeholder="Email"
             value={formData.email}
             onChange={handleChange}
+            aria-label="Email"
             className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <input
@@ -86,14 +110,27 @@ export default function RegisterModal({ onClose }) {
             placeholder="Senha"
             value={formData.senha}
             onChange={handleChange}
+            aria-label="Senha"
             className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
+          <input
+            type="password"
+            name="confirmarSenha"
+            placeholder="Confirmar senha"
+            value={formData.confirmarSenha}
+            onChange={handleChange}
+            aria-label="Confirmar senha"
+            className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+
           {error && <p className="text-red-600 text-sm">{error}</p>}
 
           <button
             type="button"
-            onClick={() =>
-              (window.location.href = "http://localhost:4000/auth/github")
+            aria-label="Entrar com GitHub"
+            onClick={
+              () => (window.location.href = "http://localhost:4000/auth/github")
+              // ou: navigate("/auth/github") se estiver roteado
             }
             className="w-full flex items-center justify-center gap-2 bg-gray-800 text-white px-4 py-2 rounded hover:bg-gray-900 transition"
           >
@@ -114,9 +151,15 @@ export default function RegisterModal({ onClose }) {
 
           <button
             type="submit"
-            className="w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+            disabled={isLoading}
+            aria-label="Cadastrar"
+            className={`w-full px-4 py-2 rounded transition ${
+              isLoading
+                ? "bg-blue-400 cursor-not-allowed"
+                : "bg-blue-600 hover:bg-blue-700 text-white"
+            }`}
           >
-            Cadastrar
+            {isLoading ? "Cadastrando..." : "Cadastrar"}
           </button>
         </form>
       </div>
