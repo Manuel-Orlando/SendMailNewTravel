@@ -17,8 +17,9 @@ async function removerReservasExpiradas() {
 }
 
 // POST /reservas - criar nova reserva
-router.post("/", async (req, res) => {
-  const { viagem, nomePassageiro, email, quantidade } = req.body;
+router.post("/", autenticarToken, async (req, res) => {
+  const { viagem, nomePassageiro, quantidade } = req.body;
+  const email = req.usuario.email; // vem do token
 
   try {
     const viagemSelecionada = await Viagem.findById(viagem);
@@ -33,7 +34,6 @@ router.post("/", async (req, res) => {
         .json({ erro: "Não há vagas suficientes disponíveis" });
     }
 
-    // Criar reserva
     const novaReserva = new Reserva({
       viagem,
       nomeCliente: nomePassageiro,
@@ -44,7 +44,6 @@ router.post("/", async (req, res) => {
 
     const reservaSalva = await novaReserva.save();
 
-    // Atualizar vagas disponíveis
     viagemSelecionada.vagasDisponiveis -= quantidade;
     await viagemSelecionada.save();
 
@@ -96,12 +95,10 @@ router.get("/:email", autenticarToken, async (req, res) => {
 
     res.status(200).json(reservas);
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        erro: "Erro ao buscar reservas do cliente",
-        detalhes: error.message,
-      });
+    res.status(500).json({
+      erro: "Erro ao buscar reservas do cliente",
+      detalhes: error.message,
+    });
   }
 });
 
