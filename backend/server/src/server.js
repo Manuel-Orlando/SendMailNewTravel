@@ -1,19 +1,52 @@
-require("dotenv").config();
-const express = require("express");
-const connectDB = require("./config/database");
-const cors = require("cors");
+require("dotenv").config({ path: "../.env" });
 
-// Apenas importa para iniciar o agendador
+const express = require("express");
+const cors = require("cors");
+const session = require("express-session");
+const passport = require("passport");
+require("./config/passport");
+const connectDB = require("./config/database");
+
+// Inicializa agendador
 require("./cron/limpezaReservas");
 
 const app = express();
+
+// Conecta ao banco
 connectDB();
 
-// ✅ Middlewares primeiro
-app.use(cors());
+// Middlewares
+app.use(
+  cors({
+    origin: "http://localhost:5173", // frontend
+    credentials: true,
+  })
+);
+
 app.use(express.json());
 
-// ✅ Rotas
+// Sessão (antes do Passport)
+app.use(
+  session({
+    secret: "sua_chave_secreta_segura", // troque por algo forte em produção
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: false, // true se estiver usando HTTPS
+      httpOnly: true,
+      maxAge: 1000 * 60 * 60 * 24, // 1 dia
+    },
+  })
+);
+
+// Passport
+app.use(passport.initialize());
+app.use(passport.session());
+
+// Rotas
+const authRoutes = require("./routes/auth");
+app.use("/auth", authRoutes);
+
 const viagensRoutes = require("./routes/viagens");
 app.use("/viagens", viagensRoutes);
 
@@ -23,12 +56,13 @@ app.use("/reservas", reservasRoutes);
 const adminRoutes = require("./routes/admin");
 app.use("/admin", adminRoutes);
 
-// ✅ Rota padrão
+// Rota padrão
 app.get("/", (req, res) => {
   res.send("API funcionando!");
 });
 
-// ✅ Inicialização do servidor
-app.listen(process.env.PORT || 4000, () => {
-  console.log(`🚀 Servidor rodando na porta ${process.env.PORT || 4000}`);
+// Inicializa servidor
+const PORT = process.env.PORT || 4000;
+app.listen(PORT, () => {
+  console.log(`🚀 Servidor rodando na porta ${PORT}`);
 });

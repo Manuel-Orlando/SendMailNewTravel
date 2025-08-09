@@ -2,10 +2,11 @@ const express = require("express");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const Usuario = require("../models/Usuario");
+const passport = require("passport");
 
 const router = express.Router();
 
-// Registro
+// Registro tradicional
 router.post("/registro", async (req, res) => {
   const { nome, email, senha } = req.body;
 
@@ -27,7 +28,7 @@ router.post("/registro", async (req, res) => {
   }
 });
 
-// Login
+// Login tradicional
 router.post("/login", async (req, res) => {
   const { email, senha } = req.body;
 
@@ -45,9 +46,7 @@ router.post("/login", async (req, res) => {
     const token = jwt.sign(
       { id: usuario._id, email: usuario.email },
       process.env.JWT_SECRET,
-      {
-        expiresIn: "1d",
-      }
+      { expiresIn: "1d" }
     );
 
     res.status(200).json({ token });
@@ -57,5 +56,21 @@ router.post("/login", async (req, res) => {
       .json({ erro: "Erro ao fazer login", detalhes: error.message });
   }
 });
+
+// GitHub OAuth
+router.get(
+  "/github",
+  passport.authenticate("github", { scope: ["user:email"] })
+);
+
+router.get(
+  "/github/callback",
+  passport.authenticate("github", {
+    session: false,
+  }),
+  (req, res) => {
+    res.redirect(`http://localhost:5173/oauth?token=${req.user.token}`);
+  }
+);
 
 module.exports = router;
