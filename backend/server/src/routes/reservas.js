@@ -63,4 +63,30 @@ router.get("/", async (req, res) => {
   }
 });
 
+// GET /reservas/:email - listar reservas de um cliente específico
+router.get("/:email", async (req, res) => {
+  const { email } = req.params;
+
+  try {
+    const reservas = await Reserva.find({ emailCliente: email }).populate(
+      "viagem"
+    );
+
+    if (reservas.length === 0) {
+      return res
+        .status(404)
+        .json({ mensagem: "Nenhuma reserva encontrada para este e-mail." });
+    }
+
+    res.status(200).json(reservas);
+  } catch (error) {
+    res
+      .status(500)
+      .json({
+        erro: "Erro ao buscar reservas do cliente",
+        detalhes: error.message,
+      });
+  }
+});
+
 module.exports = router;
