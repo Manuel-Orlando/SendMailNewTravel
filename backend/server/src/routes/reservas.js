@@ -4,6 +4,11 @@ const Reserva = require("../models/Reserva");
 
 const router = express.Router();
 
+function emailValido(email) {
+  const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return regex.test(email);
+}
+
 // Função para remover reservas com mais de 24h
 async function removerReservasExpiradas() {
   const limite = new Date(Date.now() - 24 * 60 * 60 * 1000); // 24h atrás
@@ -30,8 +35,8 @@ router.post("/", async (req, res) => {
     // Criar reserva
     const novaReserva = new Reserva({
       viagem,
-      nomePassageiro,
-      email,
+      nomeCliente: nomePassageiro,
+      emailCliente: email,
       quantidade,
       status: "confirmada",
     });
@@ -67,6 +72,10 @@ router.get("/", async (req, res) => {
 router.get("/:email", async (req, res) => {
   const { email } = req.params;
 
+  if (!emailValido(email)) {
+    return res.status(400).json({ erro: "Formato de e-mail inválido." });
+  }
+
   try {
     const reservas = await Reserva.find({ emailCliente: email }).populate(
       "viagem"
@@ -80,12 +89,10 @@ router.get("/:email", async (req, res) => {
 
     res.status(200).json(reservas);
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        erro: "Erro ao buscar reservas do cliente",
-        detalhes: error.message,
-      });
+    res.status(500).json({
+      erro: "Erro ao buscar reservas do cliente",
+      detalhes: error.message,
+    });
   }
 });
 

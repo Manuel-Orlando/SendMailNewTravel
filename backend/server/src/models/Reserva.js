@@ -8,6 +8,8 @@ const reservaSchema = new mongoose.Schema({
   },
   nomeCliente: { type: String, required: true },
   emailCliente: { type: String, required: true },
+  quantidade: { type: Number, required: true },
+  status: { type: String, default: "pendente" },
   dataCriacao: { type: Date, default: Date.now },
 });
 
