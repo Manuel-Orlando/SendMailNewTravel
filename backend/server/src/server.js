@@ -20,6 +20,9 @@ app.use("/viagens", viagensRoutes);
 const reservasRoutes = require("./routes/reservas");
 app.use("/reservas", reservasRoutes);
 
+const adminRoutes = require("./routes/admin");
+app.use("/admin", adminRoutes);
+
 // ✅ Rota padrão
 app.get("/", (req, res) => {
   res.send("API funcionando!");
