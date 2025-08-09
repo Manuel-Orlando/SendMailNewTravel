@@ -4,12 +4,12 @@ import { useAuth } from "../../../context/AuthContext";
 export default function LoginModal({ onClose }) {
   const { login } = useAuth();
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [senha, setsenha] = useState("");
   const [error, setError] = useState("");
 
   const handleLogin = async () => {
     try {
-      await login(email, password);
+      await login(email, senha);
       onClose();
     } catch (err) {
       setError("Credenciais inválidas. Tente novamente.");
@@ -31,8 +31,8 @@ export default function LoginModal({ onClose }) {
         <input
           type="password"
           placeholder="Senha"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          value={senha}
+          onChange={(e) => setsenha(e.target.value)}
           className="w-full mb-4 px-3 py-2 border rounded"
         />
         <div className="flex justify-end gap-2">

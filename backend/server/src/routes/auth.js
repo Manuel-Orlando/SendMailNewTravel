@@ -33,7 +33,7 @@ router.post("/registro", async (req, res) => {
       { expiresIn: "1d" }
     );
 
-    res.status(201).json({
+    res.status(200).json({
       token,
       usuario: {
         nome: novoUsuario.nome,
@@ -49,19 +49,34 @@ router.post("/registro", async (req, res) => {
 
 // Login tradicional
 router.post("/login", async (req, res) => {
-  const { email, senha } = req.body;
-
   try {
+    const { email, senha } = req.body;
+
+    // Verifica se os campos foram enviados
+    if (!email || !senha) {
+      return res.status(400).json({ erro: "Email e senha são obrigatórios" });
+    }
+
+    // Busca o usuário no banco
     const usuario = await Usuario.findOne({ email });
     if (!usuario) {
       return res.status(404).json({ erro: "Usuário não encontrado" });
     }
 
+    // Verifica se o campo de senha existe
+    if (!usuario.senha) {
+      return res
+        .status(500)
+        .json({ erro: "Usuário não possui senha cadastrada" });
+    }
+
+    // Compara a senha enviada com o hash salvo
     const senhaValida = await bcrypt.compare(senha, usuario.senha);
     if (!senhaValida) {
       return res.status(401).json({ erro: "Senha incorreta" });
     }
 
+    // Gera o token JWT
     const token = jwt.sign(
       { id: usuario._id, email: usuario.email },
       process.env.JWT_SECRET,
@@ -70,13 +85,16 @@ router.post("/login", async (req, res) => {
 
     console.log("Token gerado:", token);
 
-    res.status(200).json({ token });
+    return res.status(200).json({ token });
   } catch (error) {
-    res
+    console.error("Erro ao fazer login:", error);
+    return res
       .status(500)
       .json({ erro: "Erro ao fazer login", detalhes: error.message });
   }
 });
+
+module.exports = router;
 
 // GitHub OAuth
 router.get(

@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from "react";
-import api from "../../src/utils/api";
+import api from "../utils/api";
 
 const AuthContext = createContext();
 
@@ -15,19 +15,26 @@ export function AuthProvider({ children }) {
     if (nomeSalvo) setUserName(nomeSalvo);
   }, []);
 
-  const login = async (email, password) => {
+  const login = async (email, senha) => {
     try {
-      const response = await api.post("/auth/login", { email, password });
-      const { token, user } = response.data;
+      const response = await api.post("/auth/login", { email, senha });
+      const { token, usuario } = response.data;
 
       setToken(token);
-      setUserName(user?.name || "Usuário");
+      setUserName(usuario?.nome || "Usuário");
 
       localStorage.setItem("token", token);
-      localStorage.setItem("userName", user?.name || "Usuário");
+      localStorage.setItem("userName", usuario?.nome || "Usuário");
     } catch (error) {
       throw new Error("Credenciais inválidas");
     }
+  };
+
+  const loginComToken = (token, nome) => {
+    setToken(token);
+    setUserName(nome || "Usuário");
+    localStorage.setItem("token", token);
+    localStorage.setItem("userName", nome || "Usuário");
   };
 
   const logout = () => {
@@ -39,7 +46,7 @@ export function AuthProvider({ children }) {
 
   return (
     <AuthContext.Provider
-      value={{ token, login, logout, userName, setUserName }}
+      value={{ token, login, loginComToken, logout, userName, setUserName }}
     >
       {children}
     </AuthContext.Provider>

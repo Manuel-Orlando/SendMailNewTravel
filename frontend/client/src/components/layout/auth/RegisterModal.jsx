@@ -3,7 +3,6 @@ import { useAuth } from "../../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 
 export default function RegisterModal({ onClose }) {
-  console.log("API URL fora do submit:", import.meta.env.VITE_API_URL);
   const [formData, setFormData] = useState({
     nome: "",
     email: "",
@@ -13,7 +12,7 @@ export default function RegisterModal({ onClose }) {
 
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const { login, setUserName } = useAuth();
+  const { loginComToken, setUserName } = useAuth();
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -23,7 +22,6 @@ export default function RegisterModal({ onClose }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("submit interceptado");
     const { nome, email, senha, confirmarSenha } = formData;
 
     if (!nome || !email || !senha || !confirmarSenha) {
@@ -40,17 +38,11 @@ export default function RegisterModal({ onClose }) {
 
     try {
       const apiUrl = import.meta.env.VITE_API_URL;
-      console.log("API URL dentro do submit:", apiUrl);
-
       const response = await fetch(`${apiUrl}/auth/registro`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ nome, email, senha }),
       });
-
-      console.log("Enviando para:", `${apiUrl}/auth/registro`);
-      console.log("Dados enviados:", { nome, email, senha });
-      console.log("Resposta recebida:", response);
 
       if (!response.ok) {
         const erro = await response.text();
@@ -58,13 +50,7 @@ export default function RegisterModal({ onClose }) {
       }
 
       const data = await response.json();
-      setUserName(data.usuario.nome);
-
-      if (!data.token) {
-        throw new Error("Token não recebido.");
-      }
-
-      login(data.token, data.usuario.nome);
+      loginComToken(data.token, data.usuario.nome);
       onClose();
       navigate("/");
     } catch (err) {
@@ -92,8 +78,7 @@ export default function RegisterModal({ onClose }) {
             placeholder="Nome"
             value={formData.nome}
             onChange={handleChange}
-            aria-label="Nome"
-            className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-2 border rounded"
           />
           <input
             type="email"
@@ -101,8 +86,7 @@ export default function RegisterModal({ onClose }) {
             placeholder="Email"
             value={formData.email}
             onChange={handleChange}
-            aria-label="Email"
-            className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-2 border rounded"
           />
           <input
             type="password"
@@ -110,8 +94,7 @@ export default function RegisterModal({ onClose }) {
             placeholder="Senha"
             value={formData.senha}
             onChange={handleChange}
-            aria-label="Senha"
-            className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-2 border rounded"
           />
           <input
             type="password"
@@ -119,40 +102,14 @@ export default function RegisterModal({ onClose }) {
             placeholder="Confirmar senha"
             value={formData.confirmarSenha}
             onChange={handleChange}
-            aria-label="Confirmar senha"
-            className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-2 border rounded"
           />
 
           {error && <p className="text-red-600 text-sm">{error}</p>}
 
           <button
-            type="button"
-            aria-label="Entrar com GitHub"
-            onClick={
-              () => (window.location.href = "http://localhost:4000/auth/github")
-              // ou: navigate("/auth/github") se estiver roteado
-            }
-            className="w-full flex items-center justify-center gap-2 bg-gray-800 text-white px-4 py-2 rounded hover:bg-gray-900 transition"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-              className="w-5 h-5"
-            >
-              <path
-                fillRule="evenodd"
-                d="M12 0C5.373 0 0 5.373 0 12c0 5.303 3.438 9.8 8.205 11.387.6.111.82-.261.82-.577 0-.285-.011-1.04-.017-2.04-3.338.726-4.042-1.61-4.042-1.61-.546-1.387-1.333-1.756-1.333-1.756-1.09-.745.083-.729.083-.729 1.205.085 1.84 1.237 1.84 1.237 1.07 1.834 2.807 1.304 3.492.997.108-.775.418-1.305.76-1.605-2.665-.304-5.466-1.332-5.466-5.931 0-1.31.469-2.381 1.236-3.221-.124-.303-.536-1.524.117-3.176 0 0 1.008-.322 3.3 1.23a11.52 11.52 0 0 1 3.003-.404c1.018.005 2.045.138 3.003.404 2.29-1.552 3.296-1.23 3.296-1.23.655 1.652.243 2.873.12 3.176.77.84 1.235 1.911 1.235 3.221 0 4.61-2.804 5.624-5.475 5.921.43.371.813 1.102.813 2.222 0 1.606-.015 2.898-.015 3.293 0 .319.216.694.825.576C20.565 21.796 24 17.3 24 12c0-6.627-5.373-12-12-12z"
-                clipRule="evenodd"
-              />
-            </svg>
-            Entrar com GitHub
-          </button>
-
-          <button
             type="submit"
             disabled={isLoading}
-            aria-label="Cadastrar"
             className={`w-full px-4 py-2 rounded transition ${
               isLoading
                 ? "bg-blue-400 cursor-not-allowed"
