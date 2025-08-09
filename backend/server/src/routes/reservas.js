@@ -102,6 +102,38 @@ router.get("/:email", autenticarToken, async (req, res) => {
   }
 });
 
+// GET /reservas/futuras - listar reservas futuras do usuário autenticado
+router.get("/futuras", autenticarToken, async (req, res) => {
+  try {
+    const agora = new Date();
+
+    const reservasFuturas = await Reserva.find({
+      emailCliente: req.usuario.email,
+    }).populate({
+      path: "viagem",
+      match: { data: { $gt: agora } }, // viagens futuras
+    });
+
+    // Filtra reservas que têm viagem futura (viagem não nula)
+    const filtradas = reservasFuturas.filter((r) => r.viagem);
+
+    if (filtradas.length === 0) {
+      return res
+        .status(404)
+        .json({ mensagem: "Nenhuma reserva futura encontrada." });
+    }
+
+    res.status(200).json(filtradas);
+  } catch (error) {
+    res
+      .status(500)
+      .json({
+        erro: "Erro ao buscar reservas futuras",
+        detalhes: error.message,
+      });
+  }
+});
+
 // DELETE /reservas/:id - cancelar uma reserva
 router.delete("/:id", autenticarToken, async (req, res) => {
   const { id } = req.params;
