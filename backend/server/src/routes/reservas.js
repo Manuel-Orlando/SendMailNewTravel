@@ -102,4 +102,40 @@ router.get("/:email", autenticarToken, async (req, res) => {
   }
 });
 
+// DELETE /reservas/:id - cancelar uma reserva
+router.delete("/:id", autenticarToken, async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const reserva = await Reserva.findById(id);
+
+    if (!reserva) {
+      return res.status(404).json({ erro: "Reserva não encontrada" });
+    }
+
+    // Verifica se o usuário é dono da reserva
+    if (reserva.emailCliente !== req.usuario.email) {
+      return res
+        .status(403)
+        .json({ erro: "Você não tem permissão para cancelar esta reserva" });
+    }
+
+    // Atualiza vagas da viagem
+    const viagem = await Viagem.findById(reserva.viagem);
+    if (viagem) {
+      viagem.vagasDisponiveis += reserva.quantidade;
+      await viagem.save();
+    }
+
+    // Remove a reserva
+    await reserva.deleteOne();
+
+    res.status(200).json({ mensagem: "Reserva cancelada com sucesso" });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ erro: "Erro ao cancelar reserva", detalhes: error.message });
+  }
+});
+
 module.exports = router;
