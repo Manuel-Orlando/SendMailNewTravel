@@ -3,6 +3,7 @@ const Viagem = require("../models/Viagem");
 const Reserva = require("../models/Reserva");
 
 const router = express.Router();
+const autenticarToken = require("../middlewares/auth");
 
 function emailValido(email) {
   const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -69,8 +70,14 @@ router.get("/", async (req, res) => {
 });
 
 // GET /reservas/:email - listar reservas de um cliente específico
-router.get("/:email", async (req, res) => {
+router.get("/:email", autenticarToken, async (req, res) => {
   const { email } = req.params;
+
+  if (req.usuario.email !== email) {
+    return res
+      .status(403)
+      .json({ erro: "Acesso negado às reservas de outro usuário" });
+  }
 
   if (!emailValido(email)) {
     return res.status(400).json({ erro: "Formato de e-mail inválido." });
@@ -89,10 +96,12 @@ router.get("/:email", async (req, res) => {
 
     res.status(200).json(reservas);
   } catch (error) {
-    res.status(500).json({
-      erro: "Erro ao buscar reservas do cliente",
-      detalhes: error.message,
-    });
+    res
+      .status(500)
+      .json({
+        erro: "Erro ao buscar reservas do cliente",
+        detalhes: error.message,
+      });
   }
 });
 
