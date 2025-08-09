@@ -14,6 +14,9 @@ app.use(express.json());
 const viagensRoutes = require("./routes/viagens");
 app.use("/viagens", viagensRoutes);
 
+const reservasRoutes = require("./routes/reservas");
+app.use("/reservas", reservasRoutes);
+
 // ✅ Rota padrão
 app.get("/", (req, res) => {
   res.send("API funcionando!");
