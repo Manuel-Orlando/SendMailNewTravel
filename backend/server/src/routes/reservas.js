@@ -44,4 +44,16 @@ router.post("/", async (req, res) => {
   }
 });
 
+// GET /reservas - listar todas as reservas
+router.get("/", async (req, res) => {
+  try {
+    const reservas = await Reserva.find().populate("viagem");
+    res.status(200).json(reservas);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ erro: "Erro ao buscar reservas", detalhes: error.message });
+  }
+});
+
 module.exports = router;
