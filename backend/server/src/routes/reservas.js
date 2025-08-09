@@ -4,6 +4,7 @@ const Reserva = require("../models/Reserva");
 
 const router = express.Router();
 const autenticarToken = require("../middlewares/auth");
+const enviarEmail = require("../utils/email");
 
 function emailValido(email) {
   const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -46,6 +47,12 @@ router.post("/", autenticarToken, async (req, res) => {
 
     viagemSelecionada.vagasDisponiveis -= quantidade;
     await viagemSelecionada.save();
+
+    enviarEmail(
+      reservaSalva.emailCliente,
+      "Confirmação de Reserva",
+      `<h2>Olá ${reservaSalva.nomeCliente},</h2><p>Sua reserva para ${viagemSelecionada.titulo} foi confirmada!</p>`
+    ).catch(console.error);
 
     res.status(201).json(reservaSalva);
   } catch (error) {
@@ -125,12 +132,10 @@ router.get("/futuras", autenticarToken, async (req, res) => {
 
     res.status(200).json(filtradas);
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        erro: "Erro ao buscar reservas futuras",
-        detalhes: error.message,
-      });
+    res.status(500).json({
+      erro: "Erro ao buscar reservas futuras",
+      detalhes: error.message,
+    });
   }
 });
 
@@ -161,6 +166,14 @@ router.delete("/:id", autenticarToken, async (req, res) => {
 
     // Remove a reserva
     await reserva.deleteOne();
+
+    enviarEmail(
+      reserva.emailCliente,
+      "Cancelamento de Reserva",
+      `<h2>Olá ${reserva.nomeCliente},</h2><p>Sua reserva para ${
+        viagem?.titulo || "sua viagem"
+      } foi cancelada com sucesso.</p>`
+    ).catch(console.error);
 
     res.status(200).json({ mensagem: "Reserva cancelada com sucesso" });
   } catch (error) {
