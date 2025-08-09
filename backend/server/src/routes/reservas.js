@@ -4,6 +4,12 @@ const Reserva = require("../models/Reserva");
 
 const router = express.Router();
 
+// Função para remover reservas com mais de 24h
+async function removerReservasExpiradas() {
+  const limite = new Date(Date.now() - 24 * 60 * 60 * 1000); // 24h atrás
+  await Reserva.deleteMany({ dataCriacao: { $lt: limite } });
+}
+
 // POST /reservas - criar nova reserva
 router.post("/", async (req, res) => {
   const { viagem, nomePassageiro, email, quantidade } = req.body;
@@ -47,6 +53,7 @@ router.post("/", async (req, res) => {
 // GET /reservas - listar todas as reservas
 router.get("/", async (req, res) => {
   try {
+    await removerReservasExpiradas(); // limpa reservas antigas
     const reservas = await Reserva.find().populate("viagem");
     res.status(200).json(reservas);
   } catch (error) {
