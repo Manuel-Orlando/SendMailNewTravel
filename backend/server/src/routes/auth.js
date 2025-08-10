@@ -85,7 +85,13 @@ router.post("/login", async (req, res) => {
 
     console.log("Token gerado:", token);
 
-    return res.status(200).json({ token });
+    return res.status(200).json({
+      token,
+      usuario: {
+        nome: usuario.nome,
+        email: usuario.email,
+      },
+    });
   } catch (error) {
     console.error("Erro ao fazer login:", error);
     return res
