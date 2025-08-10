@@ -4,12 +4,14 @@ import { motion } from "framer-motion";
 import { useState } from "react";
 import RegisterModal from "./auth/RegisterModal";
 import LoginModal from "./auth/LoginModal";
+import UserModal from "./auth/UserModal";
 
 export default function Header() {
   const { token, logout, userName } = useAuth();
   const navigate = useNavigate();
   const [showRegisterModal, setShowRegisterModal] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showUserModal, setShowUserModal] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -61,9 +63,13 @@ export default function Header() {
 
           {token && (
             <>
-              <span className="font-semibold">
+              <button
+                onClick={() => setShowUserModal(true)}
+                className="font-semibold hover:underline transition"
+              >
                 Olá, {userName || "Usuário"}
-              </span>
+              </button>
+
               <button
                 onClick={handleLogout}
                 className="bg-white text-blue-600 px-3 py-1 rounded hover:bg-blue-100 transition"
@@ -82,6 +88,8 @@ export default function Header() {
       {showLoginModal && (
         <LoginModal onClose={() => setShowLoginModal(false)} />
       )}
+
+      {showUserModal && <UserModal onClose={() => setShowUserModal(false)} />}
     </>
   );
 }
