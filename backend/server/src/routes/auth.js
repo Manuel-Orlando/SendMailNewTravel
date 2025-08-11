@@ -8,7 +8,7 @@ const router = express.Router();
 // Registro tradicional
 router.post("/registro", async (req, res) => {
   const { nome, sobrenome, email, dataNascimento, senha } = req.body;
-  const { enviarEmailConfirmacao } = require("../services/emailService");
+  const { enviarEmailConfirmacao } = require("../validations/emailValidation");
 
   try {
     // Validação básica
