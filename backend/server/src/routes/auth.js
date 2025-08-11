@@ -2,17 +2,16 @@ const express = require("express");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const Usuario = require("../models/Usuario");
-const passport = require("passport");
 
 const router = express.Router();
 
 // Registro tradicional
 router.post("/registro", async (req, res) => {
-  const { nome, email, senha } = req.body;
+  const { nome, sobrenome, email, dataNascimento, senha } = req.body;
 
   try {
     // Validação básica
-    if (!nome || !email || !senha) {
+    if (!nome || !sobrenome || !email || !dataNascimento || !senha) {
       return res
         .status(400)
         .json({ erro: "Preencha todos os campos obrigatórios." });
@@ -24,7 +23,13 @@ router.post("/registro", async (req, res) => {
     }
 
     const senhaHash = await bcrypt.hash(senha, 10);
-    const novoUsuario = new Usuario({ nome, email, senha: senhaHash });
+    const novoUsuario = new Usuario({
+      nome,
+      sobrenome,
+      email,
+      dataNascimento,
+      senha: senhaHash,
+    });
     await novoUsuario.save();
 
     const token = jwt.sign(
@@ -37,7 +42,9 @@ router.post("/registro", async (req, res) => {
       token,
       usuario: {
         nome: novoUsuario.nome,
+        sobrenome: novoUsuario.sobrenome,
         email: novoUsuario.email,
+        dataNascimento: novoUsuario.dataNascimento,
       },
     });
   } catch (error) {
@@ -99,23 +106,5 @@ router.post("/login", async (req, res) => {
       .json({ erro: "Erro ao fazer login", detalhes: error.message });
   }
 });
-
-module.exports = router;
-
-// GitHub OAuth
-router.get(
-  "/github",
-  passport.authenticate("github", { scope: ["user:email"] })
-);
-
-router.get(
-  "/github/callback",
-  passport.authenticate("github", {
-    session: false,
-  }),
-  (req, res) => {
-    res.redirect(`http://localhost:5173/oauth?token=${req.user.token}`);
-  }
-);
 
 module.exports = router;

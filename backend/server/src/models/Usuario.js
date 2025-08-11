@@ -1,15 +1,13 @@
 const mongoose = require("mongoose");
 
 const usuarioSchema = new mongoose.Schema({
-  nome: { type: String }, // usado para login tradicional
+  nome: { type: String },
+  sobrenome: { type: String, required: true },
   email: { type: String, unique: true },
-  senha: { type: String }, // só obrigatório no login tradicional
+  dataNascimento: { type: Date, required: true },
+  senha: { type: String },
+  isVerified: { type: Boolean, default: false }, // Indica se o usuário verificou o email
   isAdmin: { type: Boolean, default: false },
-
-  // Campos para login via GitHub
-  githubId: { type: String, unique: true, sparse: true },
-  username: { type: String },
-  avatar: { type: String },
 });
 
 module.exports = mongoose.model("Usuario", usuarioSchema);
