@@ -3,8 +3,6 @@ require("dotenv").config({ path: "../.env" });
 const express = require("express");
 const cors = require("cors");
 const session = require("express-session");
-const passport = require("passport");
-require("./config/passport");
 const connectDB = require("./config/database");
 
 // Inicializa agendador
@@ -39,10 +37,6 @@ app.use(
   })
 );
 
-// Passport
-app.use(passport.initialize());
-app.use(passport.session());
-
 // Rotas
 const authRoutes = require("./routes/auth");
 app.use("/auth", authRoutes);
@@ -55,6 +49,9 @@ app.use("/reservas", reservasRoutes);
 
 const adminRoutes = require("./routes/admin");
 app.use("/admin", adminRoutes);
+
+const emailConfirmationRoutes = require("./routes/emailConfirmation");
+app.use("/", emailConfirmationRoutes);
 
 // Rota padrão
 app.get("/", (req, res) => {

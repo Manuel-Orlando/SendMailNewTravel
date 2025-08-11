@@ -1,3 +1,8 @@
+const express = require("express");
+const router = express.Router();
+const jwt = require("jsonwebtoken");
+const Usuario = require("../models/Usuario");
+
 router.get("/confirmar-email", async (req, res) => {
   const { token } = req.query;
 
@@ -25,3 +30,4 @@ router.get("/confirmar-email", async (req, res) => {
     return res.status(400).json({ erro: "Token inválido ou expirado." });
   }
 });
+module.exports = router;

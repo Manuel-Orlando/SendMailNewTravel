@@ -9,8 +9,7 @@ const transporter = nodemailer.createTransport({
 });
 
 async function enviarEmailConfirmacao(destinatario, token) {
-  const link = `${process.env.FRONTEND_URL}/confirmar-email?token=${token}`; // ajuste para seu frontend
-
+  const link = `${process.env.FRONTEND_URL}/confirmar-email?token=${token}`;
   const mailOptions = {
     from: process.env.EMAIL_USER,
     to: destinatario,
@@ -18,7 +17,12 @@ async function enviarEmailConfirmacao(destinatario, token) {
     html: `<p>Olá! Clique no link abaixo para confirmar seu cadastro:</p><a href="${link}">${link}</a>`,
   };
 
-  await transporter.sendMail(mailOptions);
+  try {
+    const info = await transporter.sendMail(mailOptions);
+    console.log("E-mail enviado:", info.response);
+  } catch (error) {
+    console.error("Erro ao enviar e-mail:", error);
+  }
 }
 
 module.exports = { enviarEmailConfirmacao };

@@ -8,7 +8,7 @@ const router = express.Router();
 // Registro tradicional
 router.post("/registro", async (req, res) => {
   const { nome, sobrenome, email, dataNascimento, senha } = req.body;
-  const { enviarEmailConfirmacao } = require("../validations/emailValidation");
+  const { enviarEmailConfirmacao } = require("../utils/email");
 
   try {
     // Validação básica
@@ -39,6 +39,11 @@ router.post("/registro", async (req, res) => {
       { expiresIn: "1d" }
     );
 
+    // Envia o e-mail antes de responder
+    await enviarEmailConfirmacao(novoUsuario.email, token);
+    console.log("E-mail de confirmação enviado para:", novoUsuario.email);
+
+    // Só responde depois que o e-mail foi enviado
     res.status(200).json({
       token,
       usuario: {
@@ -48,9 +53,8 @@ router.post("/registro", async (req, res) => {
         dataNascimento: novoUsuario.dataNascimento,
       },
     });
-
-    await enviarEmailConfirmacao(novoUsuario.email, token);
   } catch (error) {
+    console.error("Erro no registro:", error);
     res
       .status(500)
       .json({ erro: "Erro ao registrar", detalhes: error.message });

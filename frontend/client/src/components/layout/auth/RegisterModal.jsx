@@ -1,14 +1,16 @@
 import { useState } from "react";
 import { useAuth } from "../../../context/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { data, useNavigate } from "react-router-dom";
 import ModalBase from "../../ui/ModalBase";
 
 export default function RegisterModal({ onClose }) {
   const [formData, setFormData] = useState({
     nome: "",
+    sobrenome: "",
     email: "",
     senha: "",
     confirmarSenha: "",
+    dataNascimento: "",
   });
 
   const [error, setError] = useState("");
@@ -23,9 +25,17 @@ export default function RegisterModal({ onClose }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const { nome, email, senha, confirmarSenha } = formData;
+    const { nome, sobrenome, email, senha, confirmarSenha, dataNascimento } =
+      formData;
 
-    if (!nome || !email || !senha || !confirmarSenha) {
+    if (
+      !nome ||
+      !sobrenome ||
+      !email ||
+      !senha ||
+      !confirmarSenha ||
+      !dataNascimento
+    ) {
       setError("Preencha todos os campos.");
       return;
     }
@@ -42,7 +52,7 @@ export default function RegisterModal({ onClose }) {
       const response = await fetch(`${apiUrl}/auth/registro`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nome, email, senha }),
+        body: JSON.stringify({ nome, sobrenome, email, senha, dataNascimento }),
       });
 
       if (!response.ok) {
@@ -76,6 +86,15 @@ export default function RegisterModal({ onClose }) {
           className="w-full px-4 py-2 border rounded"
         />
         <input
+          type="text"
+          name="sobrenome"
+          placeholder="Sobrenome"
+          value={formData.sobrenome}
+          onChange={handleChange}
+          className="w-full px-4 py-2 border rounded"
+        />
+
+        <input
           type="email"
           name="email"
           placeholder="Email"
@@ -83,6 +102,15 @@ export default function RegisterModal({ onClose }) {
           onChange={handleChange}
           className="w-full px-4 py-2 border rounded"
         />
+        <input
+          type="date"
+          name="dataNascimento"
+          placeholder="Data de nascimento"
+          value={formData.dataNascimento}
+          onChange={handleChange}
+          className="w-full px-4 py-2 border rounded"
+        />
+
         <input
           type="password"
           name="senha"
