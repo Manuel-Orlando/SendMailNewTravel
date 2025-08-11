@@ -1,14 +1,18 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import RegisterModal from "./auth/RegisterModal";
 import LoginModal from "./auth/LoginModal";
 import UserModal from "./auth/UserModal";
 
 export default function Header() {
-  const { token, logout, userName } = useAuth();
+  const { token, logout, userName, loginComToken } = useAuth(); // Certifique-se de que loginComToken existe no AuthContext
   const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const tokenParam = searchParams.get("token");
+
   const [showRegisterModal, setShowRegisterModal] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showUserModal, setShowUserModal] = useState(false);
@@ -17,6 +21,21 @@ export default function Header() {
     logout();
     navigate("/login");
   };
+
+  // Abrir modal de login automaticamente se vier de /cadastro-sucesso
+  useEffect(() => {
+    if (location.state?.abrirLogin) {
+      setShowLoginModal(true);
+    }
+  }, [location.state]);
+
+  // Login automático com token da URL
+  useEffect(() => {
+    if (tokenParam) {
+      loginComToken(tokenParam); // Essa função deve salvar o token e buscar os dados do usuário
+      navigate("/", { replace: true }); // Redireciona para a home sem manter o token na URL
+    }
+  }, [tokenParam, loginComToken, navigate]);
 
   return (
     <>
@@ -44,7 +63,7 @@ export default function Header() {
             Minhas Reservas
           </button>
 
-          {!token && (
+          {!token ? (
             <>
               <button
                 onClick={() => setShowRegisterModal(true)}
@@ -59,9 +78,7 @@ export default function Header() {
                 Login
               </button>
             </>
-          )}
-
-          {token && (
+          ) : (
             <>
               <button
                 onClick={() => setShowUserModal(true)}
@@ -69,7 +86,6 @@ export default function Header() {
               >
                 Olá, {userName || "Usuário"}
               </button>
-
               <button
                 onClick={handleLogout}
                 className="bg-white text-blue-600 px-3 py-1 rounded hover:bg-blue-100 transition"
@@ -84,11 +100,9 @@ export default function Header() {
       {showRegisterModal && (
         <RegisterModal onClose={() => setShowRegisterModal(false)} />
       )}
-
       {showLoginModal && (
         <LoginModal onClose={() => setShowLoginModal(false)} />
       )}
-
       {showUserModal && <UserModal onClose={() => setShowUserModal(false)} />}
     </>
   );

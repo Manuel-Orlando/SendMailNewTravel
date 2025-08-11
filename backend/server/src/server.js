@@ -51,7 +51,7 @@ const adminRoutes = require("./routes/admin");
 app.use("/admin", adminRoutes);
 
 const emailConfirmationRoutes = require("./routes/emailConfirmation");
-app.use("/", emailConfirmationRoutes);
+app.use("/auth", emailConfirmationRoutes);
 
 // Rota padrão
 app.get("/", (req, res) => {

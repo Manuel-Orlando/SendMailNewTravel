@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { useAuth } from "../../../context/AuthContext";
-import { data, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import ModalBase from "../../ui/ModalBase";
 
 export default function RegisterModal({ onClose }) {
@@ -15,7 +14,6 @@ export default function RegisterModal({ onClose }) {
 
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const { loginComToken } = useAuth();
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -61,9 +59,10 @@ export default function RegisterModal({ onClose }) {
       }
 
       const data = await response.json();
-      loginComToken(data.token, data.usuario.nome);
+
+      // ✅ Novo fluxo: sem login automático
       onClose();
-      navigate("/");
+      navigate("/cadastro-sucesso", { state: { email } });
     } catch (err) {
       setError(err.message || "Não foi possível cadastrar. Tente novamente.");
     } finally {
@@ -93,7 +92,6 @@ export default function RegisterModal({ onClose }) {
           onChange={handleChange}
           className="w-full px-4 py-2 border rounded"
         />
-
         <input
           type="email"
           name="email"
@@ -110,7 +108,6 @@ export default function RegisterModal({ onClose }) {
           onChange={handleChange}
           className="w-full px-4 py-2 border rounded"
         />
-
         <input
           type="password"
           name="senha"

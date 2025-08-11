@@ -2,16 +2,16 @@ const express = require("express");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const Usuario = require("../models/Usuario");
+const { enviarEmailConfirmacao } = require("../utils/email");
+const autenticarToken = require("../middlewares/auth");
 
 const router = express.Router();
 
-// Registro tradicional
+// Registro
 router.post("/registro", async (req, res) => {
   const { nome, sobrenome, email, dataNascimento, senha } = req.body;
-  const { enviarEmailConfirmacao } = require("../utils/email");
 
   try {
-    // Validação básica
     if (!nome || !sobrenome || !email || !dataNascimento || !senha) {
       return res
         .status(400)
@@ -24,28 +24,41 @@ router.post("/registro", async (req, res) => {
     }
 
     const senhaHash = await bcrypt.hash(senha, 10);
+
     const novoUsuario = new Usuario({
       nome,
       sobrenome,
       email,
       dataNascimento,
       senha: senhaHash,
+      isVerified: false,
     });
+
     await novoUsuario.save();
 
-    const token = jwt.sign(
+    const tokenConfirmacao = jwt.sign(
       { id: novoUsuario._id, email: novoUsuario.email },
       process.env.JWT_SECRET,
       { expiresIn: "1d" }
     );
 
-    // Envia o e-mail antes de responder
-    await enviarEmailConfirmacao(novoUsuario.email, token);
-    console.log("E-mail de confirmação enviado para:", novoUsuario.email);
+    const resultadoEmail = await enviarEmailConfirmacao(
+      novoUsuario.email,
+      tokenConfirmacao
+    );
 
-    // Só responde depois que o e-mail foi enviado
+    if (!resultadoEmail.sucesso) {
+      return res.status(500).json({
+        erro: "Erro ao enviar e-mail de confirmação.",
+        detalhes: resultadoEmail.erro,
+      });
+    }
+
+    console.log("✅ E-mail de confirmação enviado para:", novoUsuario.email);
+
     res.status(200).json({
-      token,
+      mensagem:
+        "Cadastro realizado com sucesso. Verifique seu e-mail para confirmar.",
       usuario: {
         nome: novoUsuario.nome,
         sobrenome: novoUsuario.sobrenome,
@@ -54,43 +67,44 @@ router.post("/registro", async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Erro no registro:", error);
+    console.error("❌ Erro no registro:", error);
     res
       .status(500)
       .json({ erro: "Erro ao registrar", detalhes: error.message });
   }
 });
 
-// Login tradicional
+// Login
 router.post("/login", async (req, res) => {
   try {
     const { email, senha } = req.body;
 
-    // Verifica se os campos foram enviados
     if (!email || !senha) {
       return res.status(400).json({ erro: "Email e senha são obrigatórios" });
     }
 
-    // Busca o usuário no banco
     const usuario = await Usuario.findOne({ email });
     if (!usuario) {
       return res.status(404).json({ erro: "Usuário não encontrado" });
     }
 
-    // Verifica se o campo de senha existe
+    if (!usuario.isVerified) {
+      return res.status(403).json({
+        erro: "Seu e-mail ainda não foi confirmado. Verifique sua caixa de entrada.",
+      });
+    }
+
     if (!usuario.senha) {
       return res
         .status(500)
         .json({ erro: "Usuário não possui senha cadastrada" });
     }
 
-    // Compara a senha enviada com o hash salvo
     const senhaValida = await bcrypt.compare(senha, usuario.senha);
     if (!senhaValida) {
       return res.status(401).json({ erro: "Senha incorreta" });
     }
 
-    // Gera o token JWT
     const token = jwt.sign(
       { id: usuario._id, email: usuario.email },
       process.env.JWT_SECRET,
@@ -111,6 +125,22 @@ router.post("/login", async (req, res) => {
     return res
       .status(500)
       .json({ erro: "Erro ao fazer login", detalhes: error.message });
+  }
+});
+
+// ✅ Rota protegida: obter dados do usuário autenticado via token
+router.get("/usuario", autenticarToken, async (req, res) => {
+  try {
+    const usuario = await Usuario.findById(req.usuario.id);
+    if (!usuario) {
+      return res.status(404).json({ erro: "Usuário não encontrado" });
+    }
+
+    res.json({ nome: usuario.nome, email: usuario.email });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ erro: "Erro ao buscar usuário", detalhes: error.message });
   }
 });
 

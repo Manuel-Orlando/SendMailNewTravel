@@ -30,11 +30,25 @@ export function AuthProvider({ children }) {
     }
   };
 
-  const loginComToken = (token, nome) => {
-    setToken(token);
-    setUserName(nome || "Usuário");
-    localStorage.setItem("token", token);
-    localStorage.setItem("userName", nome || "Usuário");
+  const loginComToken = async (tokenRecebido) => {
+    try {
+      const response = await api.get("/auth/usuario", {
+        headers: {
+          Authorization: `Bearer ${tokenRecebido}`,
+        },
+      });
+
+      const usuario = response.data;
+
+      setToken(tokenRecebido);
+      setUserName(usuario?.nome || "Usuário");
+
+      localStorage.setItem("token", tokenRecebido);
+      localStorage.setItem("userName", usuario?.nome || "Usuário");
+    } catch (error) {
+      console.error("Token inválido ou expirado");
+      logout(); // Limpa tudo se o token for inválido
+    }
   };
 
   const logout = () => {
