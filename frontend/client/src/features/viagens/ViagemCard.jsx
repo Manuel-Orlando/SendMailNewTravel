@@ -5,7 +5,7 @@ import { FaPersonArrowUpFromLine } from "react-icons/fa6";
 import { TbPigMoney } from "react-icons/tb";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import InfoIcon from "../../components/ui/InfoIcon";
+import InfoIcon from "./ui/InfoIcon";
 
 export default function ViagemCard({
   image,

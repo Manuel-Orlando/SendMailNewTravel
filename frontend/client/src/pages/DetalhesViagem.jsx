@@ -1,83 +1,54 @@
-import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import {
-  FiArrowLeft,
-  FiMapPin,
-  FiCalendar,
-  FiDollarSign,
-  FiUser,
-} from "react-icons/fi";
+import { useParams } from "react-router-dom";
+import axios from "axios";
 
 export default function DetalhesViagem() {
   const { id } = useParams();
-  const navigate = useNavigate();
   const [viagem, setViagem] = useState(null);
+  const API_URL = import.meta.env.VITE_API_URL;
 
   useEffect(() => {
-    // Simulação de fetch — substitua pela sua API real
     const fetchViagem = async () => {
       try {
-        const resposta = await fetch(`https://api.seusite.com/viagens/${id}`);
-        const dados = await resposta.json();
-        setViagem(dados);
+        const resposta = await axios.get(`${API_URL}/viagens/${id}`);
+        setViagem(resposta.data);
       } catch (erro) {
         console.error("Erro ao buscar viagem:", erro);
       }
     };
 
     fetchViagem();
-  }, [id]);
+  }, [id, API_URL]);
 
-  if (!viagem) {
-    return (
-      <p className="text-center mt-10 text-gray-600">Carregando viagem...</p>
-    );
-  }
+  if (!viagem) return <p>⏳ Carregando detalhes...</p>;
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      <button
-        onClick={() => navigate(-1)}
-        className="flex items-center gap-2 text-blue-600 hover:underline mb-6"
-      >
-        <FiArrowLeft /> Voltar
-      </button>
-
+    <div className="p-4 max-w-3xl mx-auto">
+      <h1 className="text-2xl font-bold mb-2">{viagem.titulo}</h1>
       <img
         src={viagem.imagem}
-        alt={viagem.destino}
-        className="w-full h-64 object-cover rounded shadow-md mb-6"
+        alt={viagem.titulo}
+        className="w-full h-64 object-cover rounded-md mb-4"
       />
-
-      <h2 className="text-2xl font-bold mb-2">{viagem.destino}</h2>
-      <p className="text-gray-700 mb-4">{viagem.descricao}</p>
-
-      <div className="grid grid-cols-2 gap-4 text-sm text-gray-600 mb-6">
-        <div className="flex items-center gap-2">
-          <FiCalendar /> {viagem.dataInicio} até {viagem.dataFim}
-        </div>
-        <div className="flex items-center gap-2">
-          <FiMapPin /> Partida: {viagem.partida}
-        </div>
-        <div className="flex items-center gap-2">
-          <FiUser /> Vagas: {viagem.vagas}
-        </div>
-        <div className="flex items-center gap-2">
-          <FiDollarSign /> Preço: 12x R$ {viagem.preco?.toFixed(2)}
-        </div>
-      </div>
-
-      <div className="mb-6">
-        {viagem.guia && <p>✅ Guia turístico incluso</p>}
-        {viagem.cafe && <p>✅ Café da manhã incluso</p>}
-      </div>
-
-      <button
-        onClick={() => navigate("/reservar/" + viagem.id)}
-        className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition"
-      >
-        Reservar agora
-      </button>
+      <p className="mb-4">{viagem.descricao}</p>
+      <p>
+        <strong>Data:</strong> {viagem.data}
+      </p>
+      <p>
+        <strong>Vagas disponíveis:</strong> {viagem.vagasDisponiveis}
+      </p>
+      <p>
+        <strong>Guia turístico:</strong> {viagem.guiaTuristico}
+      </p>
+      <p>
+        <strong>Café da manhã:</strong> {viagem.cafeDaManha}
+      </p>
+      <p>
+        <strong>Embarque:</strong> {viagem.localEmbarque}
+      </p>
+      <p>
+        <strong>Preço:</strong> {viagem.preco}
+      </p>
     </div>
   );
 }

@@ -4,10 +4,15 @@ const viagemSchema = new mongoose.Schema(
   {
     titulo: { type: String, required: true },
     descricao: { type: String, required: true },
-    vagasTotais: { type: Number, required: true },
-    vagasDisponiveis: { type: Number, required: true },
-    tags: [{ type: String }],
     imagem: { type: String },
+    data: { type: String },
+    vagasTotais: { type: Number },
+    vagasDisponiveis: { type: Number },
+    guiaTuristico: { type: String },
+    cafeDaManha: { type: String },
+    localEmbarque: { type: String },
+    preco: { type: String },
+    tags: [{ type: String }],
   },
   { timestamps: true }
 );
