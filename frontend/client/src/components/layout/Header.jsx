@@ -15,10 +15,11 @@ import {
   FiLogOut,
   FiUser,
   FiClipboard,
+  FiSettings,
 } from "react-icons/fi";
 
 export default function Header() {
-  const { token, logout, userName, loginComToken } = useAuth();
+  const { token, logout, userName, loginComToken, isAdmin } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
@@ -105,6 +106,17 @@ export default function Header() {
                   >
                     <FiClipboard /> Minhas Reservas
                   </button>
+                  {isAdmin && (
+                    <motion.button
+                      initial={{ scale: 0.9 }}
+                      animate={{ scale: 1 }}
+                      whileHover={{ scale: 1.05 }}
+                      onClick={() => navigate("/admin")}
+                      className="bg-amber-500 text-white px-3 py-1 rounded hover:bg-amber-600 transition flex items-center gap-1 shadow-md"
+                    >
+                      <FiSettings /> Painel Admin
+                    </motion.button>
+                  )}
                   <button
                     onClick={() => setShowUserModal(true)}
                     className="font-semibold hover:text-blue-200 transition flex items-center gap-1"
@@ -184,15 +196,30 @@ export default function Header() {
                 <FiMap /> Viagens
               </button>
               {token && (
-                <button
-                  className="hover:text-blue-200 flex items-center gap-2"
-                  onClick={() => {
-                    navigate("/reservas");
-                    setMenuAberto(false);
-                  }}
-                >
-                  <FiClipboard /> Minhas Reservas
-                </button>
+                <>
+                  <button
+                    className="hover:text-blue-200 flex items-center gap-2"
+                    onClick={() => {
+                      navigate("/reservas");
+                      setMenuAberto(false);
+                    }}
+                  >
+                    <FiClipboard /> Minhas Reservas
+                  </button>
+                  {isAdmin && (
+                    <motion.button
+                      initial={{ x: 20, opacity: 0 }}
+                      animate={{ x: 0, opacity: 1 }}
+                      onClick={() => {
+                        navigate("/admin");
+                        setMenuAberto(false);
+                      }}
+                      className="bg-amber-500 text-white px-3 py-1 rounded hover:bg-amber-600 transition flex items-center gap-2"
+                    >
+                      <FiSettings /> Painel Admin
+                    </motion.button>
+                  )}
+                </>
               )}
               {!token ? (
                 <>

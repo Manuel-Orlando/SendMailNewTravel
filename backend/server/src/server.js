@@ -16,7 +16,7 @@ connectDB();
 // Middlewares
 app.use(
   cors({
-    origin: "http://localhost:5173", // frontend
+    origin: "http://localhost:5173", // Alterado de import.meta.env para process.env
     credentials: true,
   })
 );
@@ -26,11 +26,11 @@ app.use(express.json());
 // Sessão (antes do Passport)
 app.use(
   session({
-    secret: "sua_chave_secreta_segura", // troque por algo forte em produção
+    secret: process.env.JWT_SECRET || "sua_chave_secreta_segura", // Usando variável de ambiente
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: false, // true se estiver usando HTTPS
+      secure: process.env.NODE_ENV === "production", // Ativa apenas em produção
       httpOnly: true,
       maxAge: 1000 * 60 * 60 * 24, // 1 dia
     },
@@ -62,4 +62,5 @@ app.get("/", (req, res) => {
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
   console.log(`🚀 Servidor rodando na porta ${PORT}`);
+  console.log(`Frontend configurado para: ${process.env.FRONTEND_URL}`); // Log de verificação
 });

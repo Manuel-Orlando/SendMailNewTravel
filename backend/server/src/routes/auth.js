@@ -118,6 +118,7 @@ router.post("/login", async (req, res) => {
       usuario: {
         nome: usuario.nome,
         email: usuario.email,
+        isAdmin: usuario.isAdmin,
       },
     });
   } catch (error) {
@@ -136,7 +137,11 @@ router.get("/usuario", autenticarToken, async (req, res) => {
       return res.status(404).json({ erro: "Usuário não encontrado" });
     }
 
-    res.json({ nome: usuario.nome, email: usuario.email });
+    res.json({
+      nome: usuario.nome,
+      email: usuario.email,
+      isAdmin: usuario.isAdmin,
+    });
   } catch (error) {
     res
       .status(500)
