@@ -24,30 +24,30 @@ export default function DetalhesViagem() {
 
   return (
     <div className="p-4 max-w-3xl mx-auto">
-      <h1 className="text-2xl font-bold mb-2">{viagem.titulo}</h1>
+      <h1 className="text-2xl font-bold mb-2">{viagem.title}</h1>
       <img
-        src={viagem.imagem}
-        alt={viagem.titulo}
+        src={viagem.image}
+        alt={viagem.title}
         className="w-full h-64 object-cover rounded-md mb-4"
       />
-      <p className="mb-4">{viagem.descricao}</p>
+      <p className="mb-4">{viagem.text}</p>
       <p>
         <strong>Data:</strong> {viagem.data}
       </p>
       <p>
-        <strong>Vagas disponíveis:</strong> {viagem.vagasDisponiveis}
+        <strong>Vagas disponíveis:</strong> {viagem.vacancy}
       </p>
       <p>
-        <strong>Guia turístico:</strong> {viagem.guiaTuristico}
+        <strong>Guia turístico:</strong> {viagem.touristguide}
       </p>
       <p>
-        <strong>Café da manhã:</strong> {viagem.cafeDaManha}
+        <strong>Café da manhã:</strong> {viagem.breakfast}
       </p>
       <p>
-        <strong>Embarque:</strong> {viagem.localEmbarque}
+        <strong>Embarque:</strong> {viagem.boarding}
       </p>
       <p>
-        <strong>Preço:</strong> {viagem.preco}
+        <strong>Preço:</strong> {viagem.price}
       </p>
     </div>
   );

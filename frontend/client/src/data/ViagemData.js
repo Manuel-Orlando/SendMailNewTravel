@@ -1,3 +1,4 @@
+/*
 export const Viagens = [
   {
     image: "https://www.travelclass.tur.br/uploads/2020/08/1-1275x850.jpg",
@@ -75,3 +76,4 @@ export const Viagens = [
     id: "6",
   },
 ];
+*/

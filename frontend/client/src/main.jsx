@@ -19,7 +19,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
           <Route path="/cadastro" element={<App />} />
           <Route path="/cadastro-sucesso" element={<CadastroSucesso />} />
           <Route path="/confirmar-email" element={<ConfirmarEmail />} />
-          <Route path="/viagem/:id" element={<DetalhesViagem />} />
+          <Route path="/viagens/:id" element={<DetalhesViagem />} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>

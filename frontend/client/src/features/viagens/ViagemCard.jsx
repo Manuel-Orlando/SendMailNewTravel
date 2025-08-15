@@ -5,7 +5,7 @@ import { FaPersonArrowUpFromLine } from "react-icons/fa6";
 import { TbPigMoney } from "react-icons/tb";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import InfoIcon from "./ui/InfoIcon";
+import InfoIcon from "../../components/ui/InfoIcon";
 
 export default function ViagemCard({
   image,
@@ -60,7 +60,7 @@ export default function ViagemCard({
         </div>
 
         <Link
-          to={`/viagem/${id}`}
+          to={`/viagens/${id}`}
           className="bg-sky-500 hover:bg-sky-700 rounded-lg px-4 py-2 text-white font-semibold mx-auto mt-4 shadow-md transition-colors block text-center"
         >
           Saiba mais

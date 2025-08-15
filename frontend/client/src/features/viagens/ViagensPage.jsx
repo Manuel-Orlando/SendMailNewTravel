@@ -1,20 +1,36 @@
-import { useState } from "react";
-import { Viagens } from "../../data/ViagemData";
+import { useState, useEffect } from "react";
+import { buscarViagens } from "../../services/viagensService";
 import ViagemCard from "./ViagemCard";
 import VitrineSearch from "../viagenssearch/VitrineSearch";
 import useInitialLoading from "../../hooks/useInitialLoading";
 import useViagensFiltradas from "../../hooks/useViagensFiltradas";
 import CardSkeleton from "../../components/ui/CardSkeleton";
-import CardViagensPagination from "../../features/viagens/CardViagensPagination"; // Certifique-se de importar
+import CardViagensPagination from "../../features/viagens/CardViagensPagination";
 
 export default function ViagensPage() {
   const loading = useInitialLoading();
+  const [viagens, setViagens] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [ordem, setOrdem] = useState("nenhum");
   const [showAll, setShowAll] = useState(false);
 
+  // 🔄 Carrega viagens da API
+  useEffect(() => {
+    async function carregarViagens() {
+      try {
+        const dados = await buscarViagens();
+        setViagens(dados);
+      } catch (erro) {
+        console.error("Erro ao buscar viagens:", erro);
+      }
+    }
+
+    carregarViagens();
+  }, []);
+
+  // 🔍 Filtra e pagina os dados
   const { viagensToShow, currentPage, setCurrentPage, totalPages } =
-    useViagensFiltradas(Viagens, searchTerm, ordem, showAll);
+    useViagensFiltradas(viagens, searchTerm, ordem, showAll);
 
   return (
     <div className="max-w-screen-xl mx-auto px-4">
