@@ -90,62 +90,80 @@ router.post("/login", async (req, res) => {
 
     if (!usuario.isVerified) {
       return res.status(403).json({
-        erro: "Seu e-mail ainda não foi confirmado. Verifique sua caixa de entrada.",
+        erro: "Confirme seu e-mail antes de fazer login",
       });
-    }
-
-    if (!usuario.senha) {
-      return res
-        .status(500)
-        .json({ erro: "Usuário não possui senha cadastrada" });
     }
 
     const senhaValida = await bcrypt.compare(senha, usuario.senha);
     if (!senhaValida) {
-      return res.status(401).json({ erro: "Senha incorreta" });
+      return res.status(401).json({ erro: "Credenciais inválidas" });
     }
 
     const token = jwt.sign(
-      { id: usuario._id, email: usuario.email },
+      {
+        id: usuario._id,
+        email: usuario.email,
+        isAdmin: usuario.isAdmin, // Inclui no payload
+      },
       process.env.JWT_SECRET,
       { expiresIn: "1d" }
     );
 
-    console.log("Token gerado:", token);
-
-    return res.status(200).json({
+    res.status(200).json({
       token,
       usuario: {
         nome: usuario.nome,
         email: usuario.email,
-        isAdmin: usuario.isAdmin,
+        isAdmin: usuario.isAdmin, // Retorna para o frontend
       },
     });
   } catch (error) {
-    console.error("Erro ao fazer login:", error);
-    return res
+    console.error("Erro no login:", error);
+    res
       .status(500)
       .json({ erro: "Erro ao fazer login", detalhes: error.message });
   }
 });
 
-// ✅ Rota protegida: obter dados do usuário autenticado via token
-router.get("/usuario", autenticarToken, async (req, res) => {
+// Rota protegida atualizada
+router.get("/usuario", autenticarToken(), async (req, res) => {
   try {
-    const usuario = await Usuario.findById(req.usuario.id);
+    const usuario = await Usuario.findById(req.usuario.id).select(
+      "-senha -__v"
+    ); // Remove campos sensíveis
+
     if (!usuario) {
       return res.status(404).json({ erro: "Usuário não encontrado" });
     }
 
     res.json({
+      id: usuario._id,
       nome: usuario.nome,
       email: usuario.email,
       isAdmin: usuario.isAdmin,
+      dataNascimento: usuario.dataNascimento,
     });
   } catch (error) {
     res
       .status(500)
       .json({ erro: "Erro ao buscar usuário", detalhes: error.message });
+  }
+});
+
+// Nova rota para atualizar perfil (exemplo)
+router.put("/usuario", autenticarToken(), async (req, res) => {
+  try {
+    const atualizado = await Usuario.findByIdAndUpdate(
+      req.usuario.id,
+      req.body,
+      { new: true }
+    ).select("-senha -__v");
+
+    res.json(atualizado);
+  } catch (error) {
+    res
+      .status(400)
+      .json({ erro: "Erro ao atualizar", detalhes: error.message });
   }
 });
 

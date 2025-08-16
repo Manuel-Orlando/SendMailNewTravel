@@ -4,10 +4,12 @@ import App from "./App";
 import ConfirmarEmail from "./routes/ConfirmarEmail";
 import CadastroSucesso from "./routes/CadastroSucesso";
 import DetalhesViagem from "./pages/DetalhesViagem";
+import AdminPanel from "./pages/AdminPanel"; // Importe o componente AdminPanel
 import "./styles/index.css";
 
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
+import ProtectedRoute from "./components/ProtectedRoute"; // Componente para proteção de rotas
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
@@ -20,6 +22,16 @@ ReactDOM.createRoot(document.getElementById("root")).render(
           <Route path="/cadastro-sucesso" element={<CadastroSucesso />} />
           <Route path="/confirmar-email" element={<ConfirmarEmail />} />
           <Route path="/viagens/:id" element={<DetalhesViagem />} />
+
+          {/* Rota protegida para admin */}
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute adminOnly>
+                <AdminPanel />
+              </ProtectedRoute>
+            }
+          />
         </Routes>
       </AuthProvider>
     </BrowserRouter>
