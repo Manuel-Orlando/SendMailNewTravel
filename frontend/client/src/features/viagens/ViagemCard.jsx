@@ -19,49 +19,90 @@ export default function ViagemCard({
   price,
   id,
 }) {
+  const calcularParcela = () => {
+    if (!price || price === "Preço não informado") return "R$ 0,00";
+
+    try {
+      const precoNumerico = parseFloat(
+        price.toString().replace("R$ ", "").replace(",", ".")
+      );
+
+      if (isNaN(precoNumerico)) return "R$ 0,00";
+
+      const valorParcela = (precoNumerico / 12).toFixed(2);
+      return `12x de R$ ${valorParcela.replace(".", ",")}`;
+    } catch {
+      return "R$ 0,00";
+    }
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.3 }}
-      className="inline-block w-full break-inside-avoid p-4 m-2 shadow-lg rounded-lg bg-white"
+      className="w-full p-4 m-2 shadow-lg rounded-lg bg-white flex flex-col"
     >
       <img
-        className="h-56 w-full rounded-md object-cover"
+        className="h-48 w-full rounded-md object-cover mb-4"
         src={image}
         alt={title}
       />
-      <div className="flex flex-col mt-3 gap-3">
-        <h3 className="font-bold text-lg">{title}</h3>
-        <p className="text-sm text-gray-700">{text}</p>
 
-        <div className="grid grid-cols-3 gap-3 mt-2">
-          <InfoIcon label="Data" value={data} icon={<LuCalendarDays />} />
-          <InfoIcon label="Vaga" value={vacancy} icon={<MdCardTravel />} />
+      <div className="flex flex-col flex-grow gap-4">
+        <h3 className="font-bold text-lg text-gray-900 line-clamp-2">
+          {title}
+        </h3>
+
+        {/* Descrição */}
+        <div className="flex-grow">
+          <p className="text-sm text-gray-700 whitespace-pre-line break-words">
+            {text}
+          </p>
+        </div>
+
+        {/* Grid de informações - PRIMEIRA LINHA */}
+        <div className="grid grid-cols-3 gap-3">
+          <InfoIcon
+            label="Data"
+            value={data}
+            icon={<LuCalendarDays size={18} />}
+          />
+          <InfoIcon
+            label="Vagas"
+            value={`${vacancy} ${vacancy === 1 ? "vaga" : "vagas"}`}
+            icon={<MdCardTravel size={18} />}
+          />
           <InfoIcon
             label="Embarque"
             value={boarding}
-            icon={<FaPersonArrowUpFromLine />}
+            icon={<FaPersonArrowUpFromLine size={18} />}
           />
         </div>
 
-        <div className="grid grid-cols-3 gap-3 mt-2">
+        {/* Grid de informações - SEGUNDA LINHA */}
+        <div className="grid grid-cols-3 gap-3">
           <InfoIcon
-            label="Guia turístico"
+            label="Guia"
             value={touristguide}
-            icon={<PiPersonSimpleHikeBold />}
+            icon={<PiPersonSimpleHikeBold size={18} />}
           />
           <InfoIcon
-            label="Café da manhã"
+            label="Café"
             value={breakfast}
-            icon={<MdOutlineEmojiFoodBeverage />}
+            icon={<MdOutlineEmojiFoodBeverage size={18} />}
           />
-          <InfoIcon label="Preço" value={price} icon={<TbPigMoney />} />
+          <InfoIcon
+            label="Parcelas"
+            value={calcularParcela()}
+            icon={<TbPigMoney size={18} />}
+          />
         </div>
 
+        {/* Botão */}
         <Link
           to={`/viagens/${id}`}
-          className="bg-sky-500 hover:bg-sky-700 rounded-lg px-4 py-2 text-white font-semibold mx-auto mt-4 shadow-md transition-colors block text-center"
+          className="bg-sky-500 hover:bg-sky-700 rounded-lg px-4 py-3 text-white font-semibold shadow-md transition-colors block text-center w-full mt-2"
         >
           Saiba mais
         </Link>

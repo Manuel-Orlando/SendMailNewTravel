@@ -5,38 +5,98 @@ const { autenticarAdmin } = require("../middlewares/auth");
 
 const router = express.Router();
 
-router.post("/", autenticarAdmin, async (req, res) => {
-  console.log("📍 POST /viagens recebido (SEM AUTH)- Dados:", req.body);
+router.get("/:id", async (req, res) => {
+  console.log("📍 GET /viagens/:id recebido - ID:", req.params.id);
   try {
-    const { titulo, descricao, preco, vagasDisponiveis, data } = req.body;
+    const viagem = await Viagem.findById(req.params.id);
 
-    if (!titulo || !descricao || !preco || !vagasDisponiveis || !data) {
+    if (!viagem) {
+      return res.status(404).json({ erro: "Viagem não encontrada" });
+    }
+
+    res.status(200).json(viagem);
+  } catch (error) {
+    console.error("Erro ao buscar viagem:", error);
+
+    if (error.name === "CastError") {
+      return res.status(400).json({ erro: "ID inválido" });
+    }
+
+    res.status(500).json({ erro: "Erro interno no servidor" });
+  }
+});
+
+router.post("/", autenticarAdmin, async (req, res) => {
+  console.log("📍 POST /viagens recebido - Dados:", req.body);
+  try {
+    const {
+      titulo,
+      descricao,
+      preco,
+      precoOriginal,
+      vagasDisponiveis,
+      data,
+      localEmbarque,
+      guiaTuristico,
+      cafeDaManha,
+    } = req.body;
+
+    if (
+      !titulo ||
+      !descricao ||
+      !preco ||
+      !vagasDisponiveis ||
+      !data ||
+      !localEmbarque
+    ) {
       return res
         .status(400)
         .json({ erro: "Preencha todos os campos obrigatórios" });
     }
+
+    // Formata a data
+    const formatarData = (dataString) => {
+      const partes = dataString.split("-");
+      if (partes.length !== 3) return dataString;
+
+      const [ano, mes, dia] = partes;
+      const meses = [
+        "Jan",
+        "Fev",
+        "Mar",
+        "Abr",
+        "Mai",
+        "Jun",
+        "Jul",
+        "Ago",
+        "Set",
+        "Out",
+        "Nov",
+        "Dez",
+      ];
+
+      return `${dia} de ${meses[parseInt(mes) - 1]}`;
+    };
 
     const novaViagem = new Viagem({
       titulo,
       descricao,
       imagem: req.body.imagem || "https://via.placeholder.com/300x200",
       preco,
+      precoOriginal: precoOriginal || preco,
       vagasDisponiveis,
       vagasTotais: vagasDisponiveis,
       data,
+      dataFormatada: formatarData(data),
+      localEmbarque,
+      guiaTuristico: guiaTuristico || false,
+      cafeDaManha: cafeDaManha || false,
     });
-    console.log("Antes de salvar no banco");
+
     const viagemSalva = await novaViagem.save();
-    console.log("Salvo com ID:", viagemSalva._id);
     res.status(201).json(viagemSalva);
   } catch (error) {
     console.error("Erro no save:", error);
-    if (error.name === "ValidationError") {
-      return res.status(400).json({
-        erro: "Erro de validação",
-        detalhes: Object.values(error.errors).map((e) => e.message),
-      });
-    }
     res.status(500).json({ erro: "Erro interno no servidor" });
   }
 });

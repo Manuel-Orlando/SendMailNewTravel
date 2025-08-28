@@ -6,22 +6,61 @@ import { FiPlus, FiEdit, FiTrash2, FiSave, FiX } from "react-icons/fi";
 
 const REQUEST_TIMEOUT = 30000;
 
+// Função para formatar a data no formato "25 - 29 de Ago"
+const formatarData = (dataString) => {
+  if (!dataString) return "";
+
+  const partes = dataString.split("-");
+  if (partes.length !== 3) return dataString;
+
+  const [ano, mes, dia] = partes;
+  const meses = [
+    "Jan",
+    "Fev",
+    "Mar",
+    "Abr",
+    "Mai",
+    "Jun",
+    "Jul",
+    "Ago",
+    "Set",
+    "Out",
+    "Nov",
+    "Dez",
+  ];
+
+  return `${dia} de ${meses[parseInt(mes) - 1]}`;
+};
+
+// Função para calcular parcelas (12x)
+const calcularParcelas = (preco) => {
+  if (!preco) return "12x de R$ 0,00";
+  const valorParcela = (preco / 12).toFixed(2);
+  return `12x de R$ ${valorParcela.replace(".", ",")}`;
+};
+
 export default function AdminPanel() {
-  const { isAdmin } = useAuth();
+  const { isAdmin, logout } = useAuth();
   const navigate = useNavigate();
   const [viagens, setViagens] = useState([]);
   const [novaViagem, setNovaViagem] = useState({
     titulo: "",
     descricao: "",
     imagem: "",
-    preco: "R$ ",
+    preco: "",
+    precoOriginal: 0,
     vagasDisponiveis: 0,
     vagasTotais: 0,
     data: "",
+    dataFormatada: "",
+    localEmbarque: "",
+    guiaTuristico: false,
+    cafeDaManha: false,
   });
   const [editando, setEditando] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [contadorDescricao, setContadorDescricao] = useState(0);
 
   useEffect(() => {
     if (!isAdmin) navigate("/");
@@ -60,10 +99,16 @@ export default function AdminPanel() {
       !novaViagem.titulo ||
       !novaViagem.descricao ||
       !novaViagem.data ||
-      !novaViagem.preco.replace("R$ ", "").trim() ||
-      novaViagem.vagasDisponiveis <= 0
+      !novaViagem.preco ||
+      novaViagem.vagasDisponiveis <= 0 ||
+      !novaViagem.localEmbarque
     ) {
       setError("Preencha todos os campos obrigatórios");
+      return;
+    }
+
+    if (novaViagem.descricao.length > 500) {
+      setError("A descrição não pode ter mais de 500 caracteres");
       return;
     }
 
@@ -71,19 +116,32 @@ export default function AdminPanel() {
     setError("");
 
     try {
+      // Formata a data
+      const dataFormatada = formatarData(novaViagem.data);
+
+      // Converte preço para número
+      const precoNumerico = parseFloat(
+        novaViagem.preco.replace("R$ ", "").replace(",", ".").trim()
+      );
+
       const response = await api.post(
         "/viagens",
         {
           titulo: novaViagem.titulo,
           descricao: novaViagem.descricao,
           imagem: novaViagem.imagem || "https://via.placeholder.com/300x200",
-          preco: novaViagem.preco.replace("R$ ", "").trim(), // Remove "R$ " antes de enviar
+          preco: precoNumerico,
+          precoOriginal: precoNumerico,
           vagasDisponiveis: Number(novaViagem.vagasDisponiveis),
           vagasTotais: Number(novaViagem.vagasDisponiveis),
           data: novaViagem.data,
+          dataFormatada: dataFormatada,
+          localEmbarque: novaViagem.localEmbarque,
+          guiaTuristico: novaViagem.guiaTuristico,
+          cafeDaManha: novaViagem.cafeDaManha,
         },
         {
-          timeout: 15000, // Timeout de 15 segundos
+          timeout: 15000,
         }
       );
 
@@ -92,11 +150,18 @@ export default function AdminPanel() {
         titulo: "",
         descricao: "",
         imagem: "",
-        preco: "R$ ",
+        preco: "",
+        precoOriginal: 0,
         vagasDisponiveis: 0,
         vagasTotais: 0,
         data: "",
+        dataFormatada: "",
+        localEmbarque: "",
+        guiaTuristico: false,
+        cafeDaManha: false,
       });
+
+      setContadorDescricao(0);
 
       // Recarrega a lista de viagens
       await carregarViagens();
@@ -201,14 +266,21 @@ export default function AdminPanel() {
   };
 
   const handleInputChange = (e, isEditing = false) => {
-    const { name, value } = e.target;
+    const { name, value, type, checked } = e.target;
     let updatedValue;
 
-    if (name.includes("vagas")) {
+    if (type === "checkbox") {
+      updatedValue = checked;
+    } else if (name.includes("vagas")) {
       updatedValue = parseInt(value) || 0;
     } else if (name === "preco") {
       // Formata o preço para incluir "R$ " automaticamente
       updatedValue = value.startsWith("R$ ") ? value : `R$ ${value}`;
+    } else if (name === "descricao") {
+      updatedValue = value;
+      if (!isEditing) {
+        setContadorDescricao(value.length);
+      }
     } else {
       updatedValue = value;
     }
@@ -258,14 +330,20 @@ export default function AdminPanel() {
             value={novaViagem.imagem}
             onChange={handleInputChange}
           />
-          <textarea
-            name="descricao"
-            placeholder="Descrição*"
-            className="p-2 border rounded md:col-span-2"
-            rows="3"
-            value={novaViagem.descricao}
-            onChange={handleInputChange}
-          />
+          <div className="md:col-span-2">
+            <textarea
+              name="descricao"
+              placeholder="Descrição* (máximo 500 caracteres)"
+              className="p-2 border rounded w-full"
+              rows="3"
+              value={novaViagem.descricao}
+              onChange={handleInputChange}
+              maxLength={500}
+            />
+            <div className="text-sm text-gray-500 text-right">
+              {contadorDescricao}/500 caracteres
+            </div>
+          </div>
           <input
             type="text"
             name="preco"
@@ -274,6 +352,16 @@ export default function AdminPanel() {
             value={novaViagem.preco}
             onChange={handleInputChange}
           />
+          <div className="p-2 bg-gray-100 rounded">
+            <span className="text-sm font-medium">Parcelamento: </span>
+            <span className="text-sm">
+              {calcularParcelas(
+                parseFloat(
+                  novaViagem.preco.replace("R$ ", "").replace(",", ".")
+                ) || 0
+              )}
+            </span>
+          </div>
           <input
             type="number"
             name="vagasDisponiveis"
@@ -291,6 +379,40 @@ export default function AdminPanel() {
             onChange={handleInputChange}
             required
           />
+          <div className="p-2 bg-gray-100 rounded">
+            <span className="text-sm font-medium">Data formatada: </span>
+            <span className="text-sm">{formatarData(novaViagem.data)}</span>
+          </div>
+          <input
+            type="text"
+            name="localEmbarque"
+            placeholder="Local de Embarque* (ex: Recife - PE)"
+            className="p-2 border rounded md:col-span-2"
+            value={novaViagem.localEmbarque}
+            onChange={handleInputChange}
+          />
+          <div className="flex items-center space-x-4 md:col-span-2">
+            <label className="flex items-center">
+              <input
+                type="checkbox"
+                name="guiaTuristico"
+                checked={novaViagem.guiaTuristico}
+                onChange={handleInputChange}
+                className="mr-2"
+              />
+              Guia Turístico Incluso
+            </label>
+            <label className="flex items-center">
+              <input
+                type="checkbox"
+                name="cafeDaManha"
+                checked={novaViagem.cafeDaManha}
+                onChange={handleInputChange}
+                className="mr-2"
+              />
+              Café da Manhã Incluso
+            </label>
+          </div>
         </div>
         <button
           onClick={criarViagem}
@@ -317,52 +439,37 @@ export default function AdminPanel() {
               <tr>
                 <th className="py-2 px-4 border-b">Título</th>
                 <th className="py-2 px-4 border-b">Preço</th>
+                <th className="py-2 px-4 border-b">Parcelas</th>
                 <th className="py-2 px-4 border-b">Vagas</th>
+                <th className="py-2 px-4 border-b">Data</th>
+                <th className="py-2 px-4 border-b">Embarque</th>
+                <th className="py-2 px-4 border-b">Guia</th>
+                <th className="py-2 px-4 border-b">Café</th>
                 <th className="py-2 px-4 border-b">Ações</th>
               </tr>
             </thead>
             <tbody>
               {viagens.map((viagem) => (
                 <tr key={viagem._id} className="hover:bg-gray-50">
+                  <td className="py-2 px-4 border-b">{viagem.titulo}</td>
                   <td className="py-2 px-4 border-b">
-                    {editando?._id === viagem._id ? (
-                      <input
-                        type="text"
-                        name="titulo"
-                        className="p-1 border rounded w-full"
-                        value={editando.titulo}
-                        onChange={(e) => handleInputChange(e, true)}
-                      />
-                    ) : (
-                      viagem.titulo
-                    )}
+                    R$ {viagem.preco?.toFixed(2).replace(".", ",")}
                   </td>
                   <td className="py-2 px-4 border-b">
-                    {editando?._id === viagem._id ? (
-                      <input
-                        type="text"
-                        name="preco"
-                        className="p-1 border rounded w-full"
-                        value={editando.preco}
-                        onChange={(e) => handleInputChange(e, true)}
-                      />
-                    ) : (
-                      viagem.preco
-                    )}
+                    {calcularParcelas(viagem.preco)}
                   </td>
                   <td className="py-2 px-4 border-b">
-                    {editando?._id === viagem._id ? (
-                      <input
-                        type="number"
-                        name="vagasDisponiveis"
-                        className="p-1 border rounded w-full"
-                        value={editando.vagasDisponiveis}
-                        onChange={(e) => handleInputChange(e, true)}
-                        min="0"
-                      />
-                    ) : (
-                      `${viagem.vagasDisponiveis}/${viagem.vagasTotais}`
-                    )}
+                    {viagem.vagasDisponiveis}{" "}
+                    {viagem.vagasDisponiveis === 1 ? "Vaga" : "Vagas"} /{" "}
+                    {viagem.vagasTotais}
+                  </td>
+                  <td className="py-2 px-4 border-b">{viagem.dataFormatada}</td>
+                  <td className="py-2 px-4 border-b">{viagem.localEmbarque}</td>
+                  <td className="py-2 px-4 border-b">
+                    {viagem.guiaTuristico ? "Incluso" : "Não incluso"}
+                  </td>
+                  <td className="py-2 px-4 border-b">
+                    {viagem.cafeDaManha ? "Incluso" : "Não incluso"}
                   </td>
                   <td className="py-2 px-4 border-b flex gap-2">
                     {editando?._id === viagem._id ? (

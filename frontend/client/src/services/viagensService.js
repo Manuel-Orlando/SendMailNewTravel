@@ -7,11 +7,17 @@ export async function buscarViagens() {
     image: viagem.imagem,
     title: viagem.titulo,
     text: viagem.descricao,
-    data: viagem.data,
-    vacancy: viagem.vagasDisponiveis || viagem.vagas, // Use o campo correto
-    touristguide: viagem.guiaTuristico,
-    breakfast: viagem.cafeDaManha,
+    data: viagem.dataFormatada, // Usa a data formatada
+    vacancy: viagem.vagasDisponiveis,
+    totalVacancies: viagem.vagasTotais,
+    touristguide: viagem.guiaTuristico ? "Incluso" : "Não incluso",
+    breakfast: viagem.cafeDaManha ? "Incluso" : "Não incluso",
     boarding: viagem.localEmbarque,
-    price: viagem.preco ? `R$ ${viagem.preco}` : "Preço não informado",
+    price: viagem.preco
+      ? `R$ ${viagem.preco.toFixed(2).replace(".", ",")}`
+      : "Preço não informado",
+    installments: `12x de R$ ${(viagem.preco / 12)
+      .toFixed(2)
+      .replace(".", ",")}`,
   }));
 }
