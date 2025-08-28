@@ -1,10 +1,10 @@
 const express = require("express");
 const Viagem = require("../models/Viagem");
 const Reserva = require("../models/Reserva");
+const { autenticarToken } = require("../middlewares/auth");
+const enviarEmail = require("../utils/email");
 
 const router = express.Router();
-const autenticarToken = require("../middlewares/auth");
-const enviarEmail = require("../utils/email");
 
 function emailValido(email) {
   const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

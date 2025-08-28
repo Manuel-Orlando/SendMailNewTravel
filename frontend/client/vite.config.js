@@ -10,7 +10,15 @@ export default defineConfig({
       "/api": {
         target: "http://localhost:4000",
         changeOrigin: true,
+        secure: false,
         rewrite: (path) => path.replace(/^\/api/, ""),
+        ws: true, // Adicione isso se usar WebSockets
+      },
+      "/viagens": {
+        // Adicione esta configuração específica
+        target: "http://localhost:4000",
+        changeOrigin: true,
+        secure: false,
       },
     },
   },

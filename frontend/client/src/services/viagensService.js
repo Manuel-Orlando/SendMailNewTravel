@@ -1,6 +1,6 @@
 import axios from "axios";
 export async function buscarViagens() {
-  const res = await axios.get("/api/viagens"); // Use o proxy configurado
+  const res = await axios.get("/viagens"); // Use o proxy configurado
 
   return res.data.map((viagem) => ({
     id: viagem._id,

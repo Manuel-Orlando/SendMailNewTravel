@@ -3,7 +3,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const Usuario = require("../models/Usuario");
 const { enviarEmailConfirmacao } = require("../utils/email");
-const autenticarToken = require("../middlewares/auth");
+const { autenticarToken } = require("../middlewares/auth");
 
 const router = express.Router();
 
@@ -126,7 +126,7 @@ router.post("/login", async (req, res) => {
 });
 
 // Rota protegida atualizada
-router.get("/usuario", autenticarToken(), async (req, res) => {
+router.get("/usuario", autenticarToken, async (req, res) => {
   try {
     const usuario = await Usuario.findById(req.usuario.id).select(
       "-senha -__v"
@@ -151,7 +151,7 @@ router.get("/usuario", autenticarToken(), async (req, res) => {
 });
 
 // Nova rota para atualizar perfil (exemplo)
-router.put("/usuario", autenticarToken(), async (req, res) => {
+router.put("/usuario", autenticarToken, async (req, res) => {
   try {
     const atualizado = await Usuario.findByIdAndUpdate(
       req.usuario.id,

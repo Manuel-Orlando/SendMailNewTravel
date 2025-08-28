@@ -2,12 +2,9 @@ const express = require("express");
 const { Parser } = require("json2csv");
 const Reserva = require("../models/Reserva");
 const Viagem = require("../models/Viagem");
-const autenticar = require("../middlewares/auth"); // Atualize para usar o novo middleware
+const { autenticarAdmin } = require("../middlewares/auth"); // Atualize para usar o novo middleware
 
 const router = express.Router();
-
-// 🔐 Todas as rotas exigem admin (middleware global)
-router.use(autenticar({ verificarAdmin: true }));
 
 // --- ROTAS DE EXPORTAÇÃO ---
 router.get("/reservas/exportar", async (req, res) => {
@@ -42,7 +39,7 @@ router.get("/reservas/exportar", async (req, res) => {
 // --- NOVAS ROTAS DE GESTÃO DE VIAGENS ---
 
 // POST /admin/viagens - Criar nova viagem
-router.post("/viagens", async (req, res) => {
+router.post("/viagens", autenticarAdmin, async (req, res) => {
   try {
     const { titulo, destino, descricao, data, preco, vagas } = req.body;
 
@@ -66,7 +63,7 @@ router.post("/viagens", async (req, res) => {
 });
 
 // GET /admin/viagens - Listar todas (com paginação)
-router.get("/viagens", async (req, res) => {
+router.get("/viagens", autenticarAdmin, async (req, res) => {
   try {
     const { page = 1, limit = 10 } = req.query;
 
@@ -91,7 +88,7 @@ router.get("/viagens", async (req, res) => {
 });
 
 // PUT /admin/viagens/:id - Atualizar viagem
-router.put("/viagens/:id", async (req, res) => {
+router.put("/viagens/:id", autenticarAdmin, async (req, res) => {
   try {
     const viagemAtualizada = await Viagem.findByIdAndUpdate(
       req.params.id,
@@ -113,7 +110,7 @@ router.put("/viagens/:id", async (req, res) => {
 });
 
 // DELETE /admin/viagens/:id - Remover viagem
-router.delete("/viagens/:id", async (req, res) => {
+router.delete("/viagens/:id", autenticarAdmin, async (req, res) => {
   try {
     const viagem = await Viagem.findByIdAndDelete(req.params.id);
 
